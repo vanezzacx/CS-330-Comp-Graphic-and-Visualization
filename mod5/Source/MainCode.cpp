@@ -18,7 +18,7 @@
 namespace
 {
 	// Macro for window title
-	const char* const WINDOW_TITLE = "5-2 Assignment VQ"; 
+	const char* const WINDOW_TITLE = "7-1 FinalProject and Milestones"; 
 
 	// Main GLFW window
 	GLFWwindow* g_Window = nullptr;

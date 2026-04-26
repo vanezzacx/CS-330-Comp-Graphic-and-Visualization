@@ -16,7 +16,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-// declare the global variables
+// declaration of global variables
 namespace
 {
 	const char* g_ModelName = "model";
@@ -52,7 +52,6 @@ SceneManager::SceneManager(ShaderManager *pShaderManager)
  ***********************************************************/
 SceneManager::~SceneManager()
 {
-	// clear the allocated memory
 	m_pShaderManager = NULL;
 	delete m_basicMeshes;
 	m_basicMeshes = NULL;
@@ -160,7 +159,7 @@ void SceneManager::DestroyGLTextures()
 {
 	for (int i = 0; i < m_loadedTextures; i++)
 	{
-		glDeleteTextures(1, &m_textureIDs[i].ID);
+		glGenTextures(1, &m_textureIDs[i].ID);
 	}
 }
 
@@ -214,6 +213,40 @@ int SceneManager::FindTextureSlot(std::string tag)
 	}
 
 	return(textureSlot);
+}
+/***********************************************************
+ *  FindMaterial()
+ *
+ *  This method is used for getting a material from the previously
+ *  defined materials list that is associated with the passed in tag.
+ ***********************************************************/
+bool SceneManager::FindMaterial(std::string tag, OBJECT_MATERIAL& material)
+{
+	if (m_objectMaterials.size() == 0)
+	{
+		return(false);
+	}
+
+	int index = 0;
+	bool bFound = false;
+	while ((index < m_objectMaterials.size()) && (bFound == false))
+	{
+		if (m_objectMaterials[index].tag.compare(tag) == 0)
+		{
+			bFound = true;
+			material.ambientColor = m_objectMaterials[index].ambientColor;
+			material.ambientStrength = m_objectMaterials[index].ambientStrength;
+			material.diffuseColor = m_objectMaterials[index].diffuseColor;
+			material.specularColor = m_objectMaterials[index].specularColor;
+			material.shininess = m_objectMaterials[index].shininess;
+		}
+		else
+		{
+			index++;
+		}
+	}
+
+	return(true);
 }
 
 /***********************************************************
@@ -313,7 +346,31 @@ void SceneManager::SetTextureUVScale(float u, float v)
 		m_pShaderManager->setVec2Value("UVscale", glm::vec2(u, v));
 	}
 }
+/***********************************************************
+ *  SetShaderMaterial()
+ *
+ *  This method is used for passing the material values
+ *  into the shader.
+ ***********************************************************/
+void SceneManager::SetShaderMaterial(
+	std::string materialTag)
+{
+	if (m_objectMaterials.size() > 0)
+	{
+		OBJECT_MATERIAL material;
+		bool bReturn = false;
 
+		bReturn = FindMaterial(materialTag, material);
+		if (bReturn == true)
+		{
+			m_pShaderManager->setVec3Value("material.ambientColor", material.ambientColor);
+			m_pShaderManager->setFloatValue("material.ambientStrength", material.ambientStrength);
+			m_pShaderManager->setVec3Value("material.diffuseColor", material.diffuseColor);
+			m_pShaderManager->setVec3Value("material.specularColor", material.specularColor);
+			m_pShaderManager->setFloatValue("material.shininess", material.shininess);
+		}
+	}
+}
 /**************************************************************/
 /*** STUDENTS CAN MODIFY the code in the methods BELOW for  ***/
 /*** preparing and rendering their own 3D replicated scenes.***/
@@ -321,39 +378,20 @@ void SceneManager::SetTextureUVScale(float u, float v)
 /*** for assistance.                                        ***/
 /**************************************************************/
 
- /***********************************************************
-  *  LoadSceneTextures()
-  *
-  *  This method is used for preparing the 3D scene by loading
-  *  the shapes, textures in memory to support the 3D scene
-  *  rendering
-  ***********************************************************/
+/***************************************************************/
+/*** LoadSceneTextures()
+/***************************************************************/
 void SceneManager::LoadSceneTextures()
 {
-	/*** STUDENTS - add the code BELOW for loading the textures that ***/
-	/*** will be used for mapping to objects in the 3D scene. Up to  ***/
-	/*** 16 textures can be loaded per scene. Refer to the code in   ***/
-	/*** the OpenGL Sample for help.                                 ***/
+	//Table texture
+	CreateGLTexture("../../Utilities/textures/knife_handle.jpg", "table");
+	//mug body texture
+	CreateGLTexture("../../Utilities/textures/gold-seamless-texture.jpg", "body");
+	//mug handle texture
+	CreateGLTexture("../../Utilities/textures/circular-brushed-gold-texture.jpg", "handle");
 
-	//Load brick texture for pyramid
-	CreateGLTexture("../../Utilities/textures/pavers.jpg", "brick");
-	
-	CreateGLTexture("../../Utilities/textures/rusticwood.jpg", "wood");
-
-	CreateGLTexture("../../Utilities/textures/stainedglass.jpg", "glass");
-
-	CreateGLTexture("../../Utilities/textures/stainless.jpg", "metal");
-
-	CreateGLTexture("../../Utilities/textures/cheddar.jpg", "cheddar");
-
-	CreateGLTexture("../../Utilities/textures/cheese_top.jpg", "blue");
-
-	// after the texture image data is loaded into memory, the
-	// loaded textures need to be bound to texture slots - there
-	// are a total of 16 available slots for scene textures
 	BindGLTextures();
 }
-
 /***********************************************************
  *  PrepareScene()
  *
@@ -363,20 +401,16 @@ void SceneManager::LoadSceneTextures()
  ***********************************************************/
 void SceneManager::PrepareScene()
 {
-	// load the textures for the 3D scene
-	LoadSceneTextures();
-
 	// only one instance of a particular mesh needs to be
 	// loaded in memory no matter how many times it is drawn
 	// in the rendered 3D scene
 
-	m_basicMeshes->LoadBoxMesh();
+	//Load textures for the 3D scene
+	LoadSceneTextures();
+
 	m_basicMeshes->LoadPlaneMesh();
-	m_basicMeshes->LoadCylinderMesh();
-	m_basicMeshes->LoadConeMesh();
-	m_basicMeshes->LoadPrismMesh();
-	m_basicMeshes->LoadPyramid4Mesh();
-	m_basicMeshes->LoadSphereMesh();
+
+	//Load meshes for Mug
 	m_basicMeshes->LoadTaperedCylinderMesh();
 	m_basicMeshes->LoadTorusMesh();
 }
@@ -409,7 +443,7 @@ void SceneManager::RenderScene()
 	ZrotationDegrees = 0.0f;
 
 	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(0.0f, 0.0f, 0.0f);
+	positionXYZ = glm::vec3(0.0f, -0.01f, 0.0f);
 
 	// set the transformations into memory to be used on the drawn meshes
 	SetTransformations(
@@ -419,29 +453,29 @@ void SceneManager::RenderScene()
 		ZrotationDegrees,
 		positionXYZ);
 
-	//SetShaderColor(1,1,1,1);
-	SetShaderTexture("wood");
+	//SetShaderColor(0.55f, 0.40f, 0.25f, 1.0f);
+	SetShaderTexture("table");
 
-	// draw the mesh with transformation values - this plane is used for the base
+	// draw the mesh with transformation values
 	m_basicMeshes->DrawPlaneMesh();
 	/****************************************************************/
 
-	/*** Set needed transformations before drawing the basic mesh.  ***/
-	/*** This same ordering of code should be used for transforming ***/
-	/*** and drawing all the basic 3D shapes.						***/
-	/******************************************************************/
-	// set the XYZ scale for the mesh
-	scaleXYZ = glm::vec3(0.9f, 2.8f, 0.9f);
+	// Mug
 
-	// set the XYZ rotation for the mesh
-	XrotationDegrees = 90.0f;
+	// Mug Body - Upside down Tapered Cylinder
+	
+	//XYZ scale for mug
+	scaleXYZ = glm::vec3(1.3f, 2.6f, 1.3f);
+
+	//rotation set at 180 degrees for upside down tapered cylinder
+	XrotationDegrees = 180.0f;
 	YrotationDegrees = 0.0f;
-	ZrotationDegrees = -15.0f;
+	ZrotationDegrees = 0.0f;
 
-	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(0.0f, 0.9f, 0.4f);
+	//position for mug
+	positionXYZ = glm::vec3(0.0f, 2.0f, 0.0f);
 
-	// set the transformations into memory to be used on the drawn meshes
+	//setting Transformations
 	SetTransformations(
 		scaleXYZ,
 		XrotationDegrees,
@@ -449,86 +483,28 @@ void SceneManager::RenderScene()
 		ZrotationDegrees,
 		positionXYZ);
 
-	//SetShaderColor(1, 1, 1, 1);
-	SetShaderTexture("glass");
+	//mug body color (ivory color)
+	//SetShaderColor(0.96f, 0.92f, 0.85f, 1.0f);
 
-	m_basicMeshes->DrawCylinderMesh();
-	/****************************************************************/
+	SetShaderTexture("body");
 
-	/*** Set needed transformations before drawing the basic mesh.  ***/
-	/*** This same ordering of code should be used for transforming ***/
-	/*** and drawing all the basic 3D shapes.						***/
-	/******************************************************************/
-	// set the XYZ scale for the mesh
-	scaleXYZ = glm::vec3(1.0f, 9.0f, 1.3f);
+	//Tapered Cylinder Mesh
+	m_basicMeshes->DrawTaperedCylinderMesh();
 
-	// set the XYZ rotation for the mesh
-	XrotationDegrees = 0.0f;
-	YrotationDegrees = 0.0f;
-	ZrotationDegrees = 95.0f;
+	//Mug Handle - Torus
 
-	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(0.2f, 2.27f, 2.0f);
+	//XYZ scale for mug
+	scaleXYZ = glm::vec3(0.55f, 0.55f, 0.25f);
 
-	// set the transformations into memory to be used on the drawn meshes
-	SetTransformations(
-		scaleXYZ,
-		XrotationDegrees,
-		YrotationDegrees,
-		ZrotationDegrees,
-		positionXYZ);
-
-	//SetShaderColor(1, 1, 1, 1);
-	SetShaderTexture("metal");
-
-	m_basicMeshes->DrawBoxMesh();
-	/****************************************************************/
-
-	/*** Set needed transformations before drawing the basic mesh.  ***/
-	/*** This same ordering of code should be used for transforming ***/
-	/*** and drawing all the basic 3D shapes.						***/
-	/******************************************************************/
-	// set the XYZ scale for the mesh
-	scaleXYZ = glm::vec3(1.7f, 1.5f, 1.5f);
-
-	// set the XYZ rotation for the mesh
-	XrotationDegrees = 0.0f;
-	YrotationDegrees = 40.0f;
-	ZrotationDegrees = 8.0f;
-
-	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(3.3f, 3.85f, 2.19f);
-
-	// set the transformations into memory to be used on the drawn meshes
-	SetTransformations(
-		scaleXYZ,
-		XrotationDegrees,
-		YrotationDegrees,
-		ZrotationDegrees,
-		positionXYZ);
-
-	//SetShaderColor(1, 1, 1, 1);
-	SetShaderTexture("blue");
-
-	m_basicMeshes->DrawBoxMesh();
-	/****************************************************************/
-
-	/*** Set needed transformations before drawing the basic mesh.  ***/
-	/*** This same ordering of code should be used for transforming ***/
-	/*** and drawing all the basic 3D shapes.						***/
-	/******************************************************************/
-	// set the XYZ scale for the mesh
-	scaleXYZ = glm::vec3(1.0f, 1.0f, 1.0f);
-
-	// set the XYZ rotation for the mesh
+	//rotation set
 	XrotationDegrees = 0.0f;
 	YrotationDegrees = 0.0f;
 	ZrotationDegrees = 0.0f;
 
-	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(3.2f, 5.6f, 2.5f);
+	//position for mug
+	positionXYZ = glm::vec3(1.15f, 1.0f, 0.0f);
 
-	// set the transformations into memory to be used on the drawn meshes
+	//setting Transformations
 	SetTransformations(
 		scaleXYZ,
 		XrotationDegrees,
@@ -536,38 +512,12 @@ void SceneManager::RenderScene()
 		ZrotationDegrees,
 		positionXYZ);
 
-	//SetShaderColor(1, 1, 1, 1);
-	SetShaderTexture("cheddar");
+	//mug handle color (a little darker to recognize the handle from the body)
+	//SetShaderColor(0.92f, 0.90f, 0.88f, 1.0f);
 
-	m_basicMeshes->DrawSphereMesh();
-	/****************************************************************/
+	SetShaderTexture("handle");
 
-	/*** Set needed transformations before drawing the basic mesh.  ***/
-	/*** This same ordering of code should be used for transforming ***/
-	/*** and drawing all the basic 3D shapes.						***/
-	/******************************************************************/
-	// set the XYZ scale for the mesh
-	scaleXYZ = glm::vec3(1.2f, 4.0f, 1.2f);
+	//Torus Mesh - Mug Handle
+	m_basicMeshes->DrawTorusMesh();
 
-	// set the XYZ rotation for the mesh
-	XrotationDegrees = 0.0f;
-	YrotationDegrees = 0.0f;
-	ZrotationDegrees = 5.0f;
-
-	// set the XYZ position for the mesh
-	positionXYZ = glm::vec3(-3.3f, 2.50f, 2.0f);
-
-	// set the transformations into memory to be used on the drawn meshes
-	SetTransformations(
-		scaleXYZ,
-		XrotationDegrees,
-		YrotationDegrees,
-		ZrotationDegrees,
-		positionXYZ);
-
-	//SetShaderColor(1, 1, 1, 1);
-	SetShaderTexture("brick");
-
-	m_basicMeshes->DrawConeMesh();
-	/****************************************************************/
 }

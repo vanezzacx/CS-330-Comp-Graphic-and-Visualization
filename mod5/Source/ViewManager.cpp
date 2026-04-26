@@ -12,7 +12,7 @@
 // GLM Math Header inclusions
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>    
+#include <glm/gtc/type_ptr.hpp> 
 
 // declaration of the global variables and defines
 namespace
@@ -39,6 +39,8 @@ namespace
 	// the following variable is false when orthographic projection
 	// is off and true when it is on
 	bool bOrthographicProjection = false;
+
+	float gCameraSpeed = 5.0f; // scroll changes
 }
 
 /***********************************************************
@@ -54,10 +56,10 @@ ViewManager::ViewManager(
 	m_pWindow = NULL;
 	g_pCamera = new Camera();
 	// default camera view parameters
-	g_pCamera->Position = glm::vec3(0.0f, 2.0f, 12.0f);
-	g_pCamera->Front = glm::vec3(0.0f, 0.5f, -3.0f);
+	g_pCamera->Position = glm::vec3(0.0f, 5.0f, 12.0f);
+	g_pCamera->Front = glm::vec3(0.0f, -0.5f, -2.0f);
 	g_pCamera->Up = glm::vec3(0.0f, 1.0f, 0.0f);
-	g_pCamera->Zoom = 80;
+	g_pCamera->Zoom = 40;
 }
 
 /***********************************************************
@@ -100,11 +102,12 @@ GLFWwindow* ViewManager::CreateDisplayWindow(const char* windowTitle)
 	}
 	glfwMakeContextCurrent(window);
 
+	// tell GLFW to capture all mouse events
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// this callback is used to receive mouse moving events
 	glfwSetCursorPosCallback(window, &ViewManager::Mouse_Position_Callback);
-
-	// tell GLFW to capture all mouse events
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetScrollCallback(window, &ViewManager::Mouse_Scroll_Callback);
 
 	// enable blending for supporting tranparent rendering
 	glEnable(GL_BLEND);
@@ -143,6 +146,25 @@ void ViewManager::Mouse_Position_Callback(GLFWwindow* window, double xMousePos, 
 
 	// move the 3D camera according to the calculated offsets
 	g_pCamera->ProcessMouseMovement(xOffset, yOffset);
+
+}
+
+//*****************************
+//Mouse_Scroll_Callback()
+//*****************************
+void ViewManager::Mouse_Scroll_Callback(GLFWwindow* window, double xoffset, double yoffset) {
+	(void)window;
+	(void)xOffset;
+
+	//if camera object is null, exit
+	if (NULL == g_pCamera)
+	{
+		return;
+	}
+
+	//use the scroll wheel to adjust camera speed
+	//positive yOffset means scroll Up; negative means scroll Down
+	g_pCamera->ProcessMouseScroll((float)yOffset);
 }
 
 /***********************************************************
@@ -184,6 +206,16 @@ void ViewManager::ProcessKeyboardEvents()
 	{
 		g_pCamera->ProcessKeyboard(RIGHT, gDeltaTime);
 	}
+
+	//process camera movement up and down
+	//Q moves the camera up, E moves the camera down
+	if (glfwGetKey(m_pWindow, GLFW_KEY_Q) == GLFW_PRESS) {
+		g_pCamera->ProcessKeyboard(UP, gDeltaTime);
+	}
+
+	if (glfwGetKey(m_pWindow, GLFW_KEY_E) == GLFW_PRESS) {
+		g_pCamera->ProcessKeyboard(DOWN, gDeltaTime);
+	}
 }
 
 /***********************************************************
@@ -211,8 +243,19 @@ void ViewManager::PrepareSceneView()
 	view = g_pCamera->GetViewMatrix();
 
 	// define the current projection matrix
-	projection = glm::perspective(glm::radians(g_pCamera->Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-
+	if (bOrthographicProjection)
+	{
+		// Orthographic (2D-like)
+		float size = 4.0f; // adjust if needed to frame your mug
+		projection = glm::ortho(-size, size, -size, size, 0.1f, 100.0f);
+	}
+	else
+	{
+		// Perspective (3D)
+		projection = glm::perspective(glm::radians(g_pCamera->Zoom),
+			(GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT,
+			0.1f, 100.0f);
+	}
 	// if the shader manager object is valid
 	if (NULL != m_pShaderManager)
 	{

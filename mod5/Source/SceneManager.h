@@ -29,14 +29,12 @@ public:
 	// destructor
 	~SceneManager();
 
-	// properties for loaded texture access
 	struct TEXTURE_INFO
 	{
 		std::string tag;
 		uint32_t ID;
 	};
 
-	// properties for object materials
 	struct OBJECT_MATERIAL
 	{
 		float ambientStrength;
@@ -51,20 +49,25 @@ private:
 	// pointer to shader manager object
 	ShaderManager* m_pShaderManager;
 	// pointer to basic shapes object
-	ShapeMeshes *m_basicMeshes;
-	// the number of loaded textures
+	ShapeMeshes* m_basicMeshes;
+	// total number of loaded textures
 	int m_loadedTextures;
 	// loaded textures info
 	TEXTURE_INFO m_textureIDs[16];
 	// defined object materials
 	std::vector<OBJECT_MATERIAL> m_objectMaterials;
 
-	// methods for managing OpenGL textures
+	// load texture images and convert to OpenGL texture data
 	bool CreateGLTexture(const char* filename, std::string tag);
+	// bind loaded OpenGL textures to slots in memory
 	void BindGLTextures();
+	// free the loaded OpenGL textures
 	void DestroyGLTextures();
+	// find a loaded texture by tag
 	int FindTextureID(std::string tag);
 	int FindTextureSlot(std::string tag);
+	// find a defined material by tag
+	bool FindMaterial(std::string tag, OBJECT_MATERIAL& material);
 
 	// set the transformation values 
 	// into the transform buffer
@@ -86,17 +89,21 @@ private:
 	void SetShaderTexture(
 		std::string textureTag);
 
-	// set the texture UV scale into the shader
+	// set the UV scale for the texture mapping
 	void SetTextureUVScale(
 		float u, float v);
 
+	// set the object material into the shader
+	void SetShaderMaterial(
+		std::string materialTag);
+
 public:
 
-	/*** The following methods are for the students to ***/
-	/*** customize for their own 3D scene              ***/
+	// The following methods are for the students to 
+	// customize for their own 3D scene
 	void PrepareScene();
 	void RenderScene();
 
-	// loads textures from image files
 	void LoadSceneTextures();
+
 };
