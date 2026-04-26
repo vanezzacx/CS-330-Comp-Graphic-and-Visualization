@@ -1,0 +1,12 @@
+﻿  MainCode.cpp
+  ViewManager.cpp
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(132,12): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(133,12): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(138,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(139,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(142,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(143,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(231,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\ViewManager.cpp(256,1): error C2471: cannot update program database 'C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\4-2_Assignment\Debug\vc143.pdb'
+  Generating Code...
+C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\Source\MainCode.cpp(1,1): error C1033: cannot open program database 'C:\Users\vanez\OneDrive\Desktop\Vanessa School\CS 330\CS330Content\CS330Content\Projects\4-2_Assignment\4-2_Assignment\Debug\vc143.pdb'
